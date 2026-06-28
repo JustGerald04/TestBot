@@ -16,7 +16,7 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-module.exports = {
+export default {
   name: 'messageCreate',
   async execute(message) {
     // ✏️ Replace with your actual counting channel ID
