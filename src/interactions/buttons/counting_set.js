@@ -1,7 +1,7 @@
 import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
 
 export default {
-  customId: 'counting_set',
+  name: 'counting_set',
   async execute(interaction) {
     const modal = new ModalBuilder()
       .setCustomId('counting_set_modal')

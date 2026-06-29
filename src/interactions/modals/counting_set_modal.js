@@ -8,7 +8,7 @@ function saveData(data) {
 }
 
 export default {
-  customId: 'counting_set_modal',
+  name: 'counting_set_modal',
   async execute(interaction) {
     const input = interaction.fields.getTextInputValue('counting_set_input');
     const number = parseInt(input, 10);
