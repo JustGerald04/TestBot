@@ -10,7 +10,7 @@ function loadData() {
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('counting')
+    .setName('countdash')
     .setDescription('Manage the counting channel'),
 
   async execute(interaction) {
