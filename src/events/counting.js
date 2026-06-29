@@ -3,6 +3,9 @@ import fs from 'fs';
 
 const DATA_FILE = './countData.json';
 
+// ✏️ Paste your bypass role ID here
+const BYPASS_ROLE_ID = '1520940490449489991';
+
 function loadData() {
   if (!fs.existsSync(DATA_FILE)) {
     return { currentCount: 0, lastUserId: null };
@@ -19,11 +22,11 @@ export default {
   once: false,
   async execute(message) {
 
-    // ✏️ Your counting channel ID here
     const COUNTING_CHANNEL_ID = '1514793182951379014';
 
     if (message.channel.id !== COUNTING_CHANNEL_ID) return;
     if (message.author.bot) return;
+    if (message.member.roles.cache.has(BYPASS_ROLE_ID)) return;
 
     const data = loadData();
     const input = message.content.trim();
