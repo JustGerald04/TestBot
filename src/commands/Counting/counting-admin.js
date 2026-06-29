@@ -1,3 +1,4 @@
+console.log('Loading counting-admin.js...');
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import fs from 'fs';
 
