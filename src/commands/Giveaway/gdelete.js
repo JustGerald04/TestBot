@@ -4,14 +4,12 @@ import { logger } from '../../utils/logger.js';
 import { TitanBotError, ErrorTypes, handleInteractionError } from '../../utils/errorHandler.js';
 import { getGuildGiveaways, deleteGiveaway } from '../../utils/giveaways.js';
 import { logEvent, EVENT_TYPES } from '../../services/loggingService.js';
-
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName("gdelete")
-        .setDescription(
-            "Deletes a giveaway message and removes it from the database.",
-        )
+        .setDescription("Deletes a giveaway message and removes it from the database.")
         .addStringOption((option) =>
             option
                 .setName("messageid")
@@ -22,7 +20,6 @@ export default {
 
     async execute(interaction) {
         try {
-            
             if (!interaction.inGuild()) {
                 throw new TitanBotError(
                     'Giveaway command used outside guild',
@@ -32,7 +29,6 @@ export default {
                 );
             }
 
-            
             if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
                 throw new TitanBotError(
                     'User lacks ManageGuild permission',
@@ -46,7 +42,6 @@ export default {
 
             const messageId = interaction.options.getString("messageid");
 
-            
             if (!messageId || !/^\d+$/.test(messageId)) {
                 throw new TitanBotError(
                     'Invalid message ID format',
@@ -69,40 +64,34 @@ export default {
             }
 
             let deletedMessage = false;
-            let channelName = "Unknown Channel";
+            let foundChannelName = "Unknown Channel";
 
             const tryDeleteFromChannel = async (channel) => {
                 if (!channel || !channel.isTextBased() || !channel.messages?.fetch) {
                     return false;
                 }
-
                 const message = await channel.messages.fetch(messageId).catch(() => null);
-                if (!message) {
-                    return false;
-                }
-
+                if (!message) return false;
                 await message.delete();
-                channelName = channel.name || 'unknown-channel';
+                foundChannelName = channel.name || 'unknown-channel';
                 deletedMessage = true;
                 return true;
             };
 
-            
             try {
                 const channel = await interaction.client.channels.fetch(giveaway.channelId).catch(() => null);
                 if (await tryDeleteFromChannel(channel)) {
-                    logger.debug(`Deleted giveaway message ${messageId} from channel ${channelName}`);
+                    logger.debug(`Deleted giveaway message ${messageId} from channel ${foundChannelName}`);
                 }
 
                 if (!deletedMessage && interaction.guild) {
                     const textChannels = interaction.guild.channels.cache.filter(
                         ch => ch.id !== giveaway.channelId && ch.isTextBased() && ch.messages?.fetch
                     );
-
                     for (const [, guildChannel] of textChannels) {
                         const foundAndDeleted = await tryDeleteFromChannel(guildChannel).catch(() => false);
                         if (foundAndDeleted) {
-                            logger.debug(`Deleted giveaway message ${messageId} via fallback lookup in #${channelName}`);
+                            logger.debug(`Deleted giveaway message ${messageId} via fallback lookup in #${foundChannelName}`);
                             break;
                         }
                     }
@@ -111,7 +100,6 @@ export default {
                 logger.warn(`Could not delete giveaway message: ${error.message}`);
             }
 
-            
             const removedFromDatabase = await deleteGiveaway(
                 interaction.client,
                 interaction.guildId,
@@ -140,7 +128,7 @@ export default {
             }
 
             const statusMsg = deletedMessage
-                ? `and the message was deleted from #${channelName}`
+                ? `and the message was deleted from #${foundChannelName}`
                 : `but the message was already deleted or the channel was inaccessible.`;
 
             const winnerIds = Array.isArray(giveaway.winnerIds) ? giveaway.winnerIds : [];
@@ -153,9 +141,8 @@ export default {
                     ? 'This giveaway was ended with no valid winners.'
                     : 'No winner was picked before deletion.';
 
-            logger.info(`Giveaway deleted: ${messageId} in ${channelName}`);
+            logger.info(`Giveaway deleted: ${messageId} in ${foundChannelName}`);
 
-            
             try {
                 await logEvent({
                     client: interaction.client,
@@ -166,16 +153,8 @@ export default {
                         channelId: giveaway.channelId,
                         userId: interaction.user.id,
                         fields: [
-                            {
-                                name: '🎁 Prize',
-                                value: giveaway.prize || 'Unknown',
-                                inline: true
-                            },
-                            {
-                                name: '📊 Entries',
-                                value: (giveaway.participants?.length || 0).toString(),
-                                inline: true
-                            }
+                            { name: '🎁 Prize', value: giveaway.prize || 'Unknown', inline: true },
+                            { name: '📊 Entries', value: (giveaway.participants?.length || 0).toString(), inline: true }
                         ]
                     }
                 });
@@ -203,5 +182,3 @@ export default {
         }
     },
 };
-
-
